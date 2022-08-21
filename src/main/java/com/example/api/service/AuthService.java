@@ -3,12 +3,12 @@ package com.example.api.service;
 import com.example.api.Global;
 import com.example.api.model.Confirmation.ConfirmationToken;
 import com.example.api.model.Confirmation.ConfirmationTokenRepository;
-import com.example.api.model.User.User;
-import com.example.api.model.User.UserRepository;
-import com.example.api.model.User.UserRole;
+import com.example.api.model.User.*;
 import com.example.api.model.exception.BadRequestException;
 import com.example.api.model.exception.NotFoundException;
 import com.example.api.model.request.RegisterRequest;
+import com.example.api.model.response.SimpleMessageResponse;
+import com.example.api.service.transformer.UserTransformer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,16 +25,20 @@ public class AuthService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final ValidatorService validator;
     private final EmailService emailService;
+    private final UserTransformer userTransformer;
 
     @Transactional
-    public void registration(RegisterRequest request) throws BadRequestException {
+    public SimpleMessageResponse registration(RegisterRequest request) throws BadRequestException {
+        SimpleMessageResponse response
+                = new SimpleMessageResponse(true, Global.CONFIRM_REGISTRATION_MSG);
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
 
         validator.validateRegister(request); // Validate data
 
         if (user != null) {
-            if (user.getEnabled()) //if user was already enabled
+            if (user.getEnabled()) {//if user was already enabled
                 throw new BadRequestException(Global.USER_ALREADY_ENABLED_MSG);
+            }
 
             List<ConfirmationToken> tokenList = confirmationTokenRepository.findByUser(user);
             List<ConfirmationToken> deleteList = tokenList
@@ -54,9 +58,12 @@ public class AuthService {
         }
 
         signUp(user, request);
+        return response;
     }
 
-    public void confirmRegistration(String confirmationToken) throws NotFoundException {
+    public SimpleMessageResponse confirmRegistration(String confirmationToken) throws NotFoundException {
+        SimpleMessageResponse response
+                = new SimpleMessageResponse(true, Global.SUCCESS);
         ConfirmationToken token = confirmationTokenRepository
                 .findByConfirmationToken(confirmationToken)
                 .orElseThrow(() -> new NotFoundException(Global.TOKEN_NOT_EXISTS_MSG));
@@ -71,6 +78,12 @@ public class AuthService {
         user.setRole(UserRole.STUDENT); //TODO: при добавлении модерации убрать эту строку
         userRepository.save(user);
         confirmationTokenRepository.delete(token);
+
+        return response;
+    }
+
+    public UserCheckDTO check(User user) {
+        return userTransformer.fromUserToUserCheckDTO(user);
     }
 
     private void signUp(User user, RegisterRequest request) {

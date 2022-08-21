@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-@Entity(name = "confirmation_tokens")
+@Entity
+@Table(name = "confirmation_tokens")
 @NoArgsConstructor
 @Getter
 @Setter
@@ -54,8 +55,7 @@ public class ConfirmationToken {
     } // Equals and hashCode
 
     /**
-     * @param user
-     * User register constructor
+     * @param user User register constructor
      */
     public ConfirmationToken(User user) {
         this.user = user;

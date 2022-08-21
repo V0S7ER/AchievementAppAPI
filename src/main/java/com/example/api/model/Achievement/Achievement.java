@@ -9,7 +9,7 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.util.Objects;
 
-@Entity()
+@Entity
 @Table(name = "achievements")
 @Getter
 @Setter

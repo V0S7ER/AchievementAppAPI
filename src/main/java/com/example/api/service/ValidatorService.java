@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ValidatorService {
 
-    private static final String emailRegex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
+    private static final String emailRegex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z\\d-]+\\.)+[a-zA-Z]{2,6}$";
 
     public void validateRegister(RegisterRequest request) throws BadRequestException {
         boolean correctEmail = validateEmail(request.getEmail());

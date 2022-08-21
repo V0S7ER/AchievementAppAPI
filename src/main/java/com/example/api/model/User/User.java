@@ -24,7 +24,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
@@ -104,7 +103,7 @@ public class User implements UserDetails {
 
     public User(User user, RegisterRequest request) {
         this(request);
-        if(user != null)
+        if (user != null)
             this.id = user.getId();
     }
 
