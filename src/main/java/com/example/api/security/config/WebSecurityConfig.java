@@ -20,10 +20,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final UserService userService;
+    private final UserService userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private final String[] permitAllList = {"/api/v1/register**", "/api/v1/confirm**"};
+    private final String[] permitAllList = {"/api/v1/register**", "/api/v1/confirm**", "/api/v1/auth**", "/api/v1/check"};
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -46,7 +46,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setPasswordEncoder(bCryptPasswordEncoder);
-        authenticationProvider.setUserDetailsService(userService);
+        authenticationProvider.setUserDetailsService(userDetailsService);
         return authenticationProvider;
     }
 }

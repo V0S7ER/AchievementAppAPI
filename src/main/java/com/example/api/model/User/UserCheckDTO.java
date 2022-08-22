@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
+@SuppressWarnings("unused")
 public class UserCheckDTO {
     @JsonProperty("first_name")
     private String firstName;

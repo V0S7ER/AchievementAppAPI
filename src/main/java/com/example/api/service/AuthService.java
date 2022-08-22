@@ -6,10 +6,14 @@ import com.example.api.model.Confirmation.ConfirmationTokenRepository;
 import com.example.api.model.User.*;
 import com.example.api.model.exception.BadRequestException;
 import com.example.api.model.exception.NotFoundException;
+import com.example.api.model.request.LoginRequest;
 import com.example.api.model.request.RegisterRequest;
 import com.example.api.model.response.SimpleMessageResponse;
 import com.example.api.service.transformer.UserTransformer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -21,11 +25,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final DefaultAuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final ValidatorService validator;
     private final EmailService emailService;
     private final UserTransformer userTransformer;
+    private final UserService userDetailsService;
 
     @Transactional
     public SimpleMessageResponse registration(RegisterRequest request) throws BadRequestException {
@@ -82,8 +88,23 @@ public class AuthService {
         return response;
     }
 
-    public UserCheckDTO check(User user) {
+    public UserCheckDTO check(SecurityContext context) throws BadRequestException {
+        String email = context.getAuthentication().getName();
+        if (email == null)
+            throw new BadRequestException("Not authenticated");
+        User user = (User) userDetailsService.loadUserByUsername(email);
         return userTransformer.fromUserToUserCheckDTO(user);
+    }
+
+    public void authorize(LoginRequest request, SecurityContext context) throws NotFoundException {
+        try {
+            String email = request.getEmail(), password = request.getPassword();
+            Authentication query = new UsernamePasswordAuthenticationToken(email, password);
+            Authentication auth = authenticationManager.authenticate(query);
+            context.setAuthentication(auth);
+        } catch (Exception e) {
+            throw new NotFoundException("Can't found user with this credentials");
+        }
     }
 
     private void signUp(User user, RegisterRequest request) {

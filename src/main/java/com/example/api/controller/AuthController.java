@@ -1,17 +1,16 @@
 package com.example.api.controller;
 
-import com.example.api.Global;
-import com.example.api.model.User.User;
 import com.example.api.model.User.UserCheckDTO;
 import com.example.api.model.exception.BadRequestException;
 import com.example.api.model.exception.NotFoundException;
+import com.example.api.model.request.LoginRequest;
 import com.example.api.model.request.RegisterRequest;
 import com.example.api.model.response.SimpleMessageResponse;
 import com.example.api.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.PermitAll;
@@ -29,20 +28,28 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @PermitAll()
-    public ResponseEntity<SimpleMessageResponse> register(@RequestBody RegisterRequest registerRequest) throws BadRequestException {
-        return ResponseEntity.of(Optional.of(authService.registration(registerRequest)));
+    @PermitAll
+    public ResponseEntity<SimpleMessageResponse> register(@RequestBody RegisterRequest request) throws BadRequestException {
+        return ResponseEntity.of(Optional.of(authService.registration(request)));
     }
 
     @GetMapping("/confirm")
-    @PermitAll()
+    @PermitAll
     public ResponseEntity<SimpleMessageResponse> confirmRegistration(String token) throws NotFoundException {
         return ResponseEntity.of(Optional.of(authService.confirmRegistration(token)));
     }
 
     @GetMapping("/check")
-    @PreAuthorize(value = Global.MAY_ALL_ROLES)
-    public ResponseEntity<UserCheckDTO> check(@AuthenticationPrincipal User user) {
-        return ResponseEntity.of(Optional.of(authService.check(user)));
+    //@PreAuthorize(value = Global.MAY_ALL_ROLES)
+    @PermitAll
+    public ResponseEntity<UserCheckDTO> check() throws BadRequestException {
+        return ResponseEntity.of(Optional.of(authService.check(SecurityContextHolder.getContext())));
+    }
+
+    @PostMapping("/auth")
+    @PermitAll
+    public ResponseEntity<?> auth(@RequestBody LoginRequest request) throws NotFoundException {
+        authService.authorize(request, SecurityContextHolder.getContext());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
